@@ -80,6 +80,21 @@ PostSchema.pre('save', function (next) {
   next();
 });
 
+// Ensure slug is unique
+PostSchema.pre('save', async function (next) {
+  if (this.isModified('slug')) {
+    const existingPost = await this.constructor.findOne({ 
+      slug: this.slug, 
+      _id: { $ne: this._id } 
+    });
+    
+    if (existingPost) {
+      this.slug = `${this.slug}-${Date.now()}`;
+    }
+  }
+  next();
+});
+
 // Virtual for post URL
 PostSchema.virtual('url').get(function () {
   return `/posts/${this.slug}`;
